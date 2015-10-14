@@ -6,29 +6,36 @@ import Numeric.Implicits._
 
 object CountInversions {
 
-  private[this] def inversions[T : Numeric](arr: Array[T])(implicit c: scala.reflect.ClassTag[T]): (Int, Array[T]) = {
-    arr.size match {
+  private[this] def inversions[T : Numeric](arr: Array[T], low: Int, high: Int, count: Long, sorted: Array[T])(implicit c: scala.reflect.ClassTag[T]): (Long, Array[T]) = {
+    val diff = (high - low) + 1
+    val med = (high + low) / 2
+    diff match {
       case x if x <= 1 =>
-        (0, arr)
+        (0, Array[T](arr(low)))
 
       case 2 =>
-        if (arr.head > arr.last) (1, Array(arr.min, arr.max))
-        else (0, Array(arr.min, arr.max))
+        val i1 = arr(low)
+        val i2 = arr(high)
+        if (i1 > i2) (1, Array(i2, i1))
+        else (0, Array(i1, i2))
 
       case _ =>
-        val med = arr.size / 2
-        val (leftCount, leftArray) = inversions(arr.slice(0, med))
-        val (rightCount, rightArray) = inversions(arr.slice(med, arr.size))
-        val (mergedCount, mergedArray) = merge(leftArray, rightArray)
+        val (leftCount, leftArray) = inversions(arr, low, med, count, sorted)
+        val (rightCount, rightArray) = inversions(arr, med + 1, high, count, sorted)
 
-        (leftCount + rightCount + mergedCount, mergedArray)
+        merge(leftArray, rightArray, leftCount + rightCount, sorted)
     }
   }
 
-  private[this] def merge[T : Numeric](l: Array[T], r: Array[T], count: Int = 0)(implicit c: scala.reflect.ClassTag[T]): (Int, Array[T]) = {
+  @scala.annotation.tailrec
+  private[this] def merge[T : Numeric](l: Array[T], r: Array[T], count: Long, sorted: Array[T])(implicit c: scala.reflect.ClassTag[T]): (Long, Array[T]) = {
     (l, r) match {
-      case (Array(), _) => (count, r)
-      case (_, Array()) => (count, l)
+      case (Array(), _) =>
+        (count, sorted ++ r)
+
+      case (_, Array()) =>
+        (count, sorted ++ l)
+
       case _ =>
         val l1 = l.head
         val r1 = r.head
@@ -37,34 +44,17 @@ object CountInversions {
 
         (l1 <= r1) match {
           case true =>
-            val (leftCount, mergedArray) = merge(ls, r, count)
-            (leftCount + count, Array[T](l1) ++ mergedArray)
+            merge(ls, r, count, sorted ++ Array[T](l1))
 
           case false =>
-            val (rightCount, mergedArray) = merge(l, rs, count)
-            (l.size + rightCount + count, Array[T](r1) ++ mergedArray)
+            merge(l, rs, l.size + count, sorted ++ Array[T](r1))
         }
     }
   }
 
-  def apply[T : Numeric](arr: Array[T])(implicit c: scala.reflect.ClassTag[T]): Int = {
-    inversions[T](arr)._1
-  }
-
-  def test[T : Numeric](arr: Array[T], expected: Int)(implicit c: scala.reflect.ClassTag[T]): Unit = {
-    val output = apply(arr)
-    (output == expected) match {
-      case true => println(s"OK: ${arr.toList}, Output: $output, Expected: $expected")
-      case false => println(s"FAILED - Input: ${arr.toList}, Output: $output, Expected: $expected")
-    }
-  }
-
-  def main(args: Array[String]): Unit = {
-    List(
-      (Array(1, 4, 3, 1, 2), 5)
-    ) foreach { case (list, expected) =>
-      test[Int](list, expected)
-    }
+  def apply[T : Numeric](arr: Array[T])(implicit c: scala.reflect.ClassTag[T]): (Long, List[T]) = {
+    val (count, items) = inversions[T](arr, 0, arr.length - 1, 0l, Array[T]())
+    (count, items.toList)
   }
 
 }

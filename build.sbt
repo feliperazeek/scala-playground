@@ -2,6 +2,8 @@ name := "scala-playground"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 
+libraryDependencies += "org.log4s" %% "log4s" % "1.1.5"
+
 // fork a new JVM for 'run' and 'test:run'
 fork := true
 

@@ -6,9 +6,8 @@ import Numeric.Implicits._
 
 object QuickSort {
 
-  // FIXME obviously that log() function is not the best way to do logging
-  // and those arr.toList are a performance killer but they make my life easier right now
-  private[this] val LogEnabled = false
+  // FIXME Those arr.toList are a performance killer but they make my life easier right now
+  private[this] val logger = org.log4s.getLogger
 
   private[this] def sort[T : Numeric](arr: Array[T], low: Int, high: Int)(implicit c: scala.reflect.ClassTag[T]): Array[T] = {
     (high <= low) match {
@@ -16,12 +15,12 @@ object QuickSort {
         arr
 
       case false =>
-        if (LogEnabled) log(s"**** Sort - Array: ${arr.toList}, From ${arr(low)} to ${arr(high)} ****")
+        logger.debug(s"**** Sort - Array: ${arr.toList}, From ${arr(low)} to ${arr(high)} ****")
 
         // Partition the array
         val j = partition(arr, low, high, low)
-        if (LogEnabled) log(s"** Partition Result: $j - Array: ${arr.toList} **")
-        if (LogEnabled) log("")
+        logger.debug(s"** Partition Result: $j - Array: ${arr.toList} **")
+        logger.debug("")
 
         // Sort Partitions
         sort(arr, low, j - 1)
@@ -33,18 +32,18 @@ object QuickSort {
   private[this] def partition[T : Numeric](arr: Array[T], i: Int, j: Int, p: Int)(implicit c: scala.reflect.ClassTag[T]): Int = {
     val pivot = arr(p)
 
-    if (LogEnabled) log(s"-- Partition - Array: ${arr.toList}, From ${arr(i)} to ${arr(j)}, Pivot: $pivot --")
+    logger.debug(s"-- Partition - Array: ${arr.toList}, From ${arr(i)} to ${arr(j)}, Pivot: $pivot --")
 
     @scala.annotation.tailrec
     def left(x: Int): Option[Int] = {
       if (x >= j) {
         // Didn't find anything bigger than the pivot to be sent to the right side
-        if (LogEnabled) log("Left - found nothing!")
+        logger.debug("Left - found nothing!")
         None
 
       } else if (arr(x) >= pivot) {
         // Found an element bigger than the pivot
-        if (LogEnabled) log(s"Left - ${arr(x)} is bigger or equal than pivot $pivot")
+        logger.debug(s"Left - ${arr(x)} is bigger or equal than pivot $pivot")
         Some(x)
 
       } else {
@@ -57,12 +56,12 @@ object QuickSort {
     def right(x: Int): Option[Int] = {
       if (x <= i) {
         // Didn't find anything smaller than the pivot to be sent to the left side
-        if (LogEnabled) log("Right - found nothing!")
+        logger.debug("Right - found nothing!")
         None
 
       } else if (arr(x) <= pivot) {
         // Found an element that's smaller than the pivot
-        if (LogEnabled) log(s"Right - ${arr(x)} is smaller or equal than pivot $pivot")
+        logger.debug(s"Right - ${arr(x)} is smaller or equal than pivot $pivot")
         Some(x)
 
       } else {
@@ -94,10 +93,8 @@ object QuickSort {
     val (left, right) = (arr(i), arr(j))
     arr(j) = left
     arr(i) = right
-    if (LogEnabled) log(s"Exchange - $left for $right")
+    logger.debug(s"Exchange - $left for $right")
   }
-
-  private[this] def log(msg: String): Unit = if (LogEnabled) println(msg)
 
   def apply[T : Numeric](arr: Array[T], randomize: Boolean = false)(implicit c: scala.reflect.ClassTag[T]): Array[T] = {
     arr.size match {
@@ -108,7 +105,7 @@ object QuickSort {
         val input = if (randomize) util.Random.shuffle(arr.toSeq).toArray
         else arr
 
-        if (LogEnabled) log(s"Input: ${input.toList}")
+        logger.debug(s"Input: ${input.toList}")
 
         sort[T](input, 0, arr.size - 1)
     }

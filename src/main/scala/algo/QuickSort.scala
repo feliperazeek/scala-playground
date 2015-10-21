@@ -6,10 +6,9 @@ import Numeric.Implicits._
 
 object QuickSort {
 
+  // FIXME obviously that log() function is not the best way to do logging
+  // and those arr.toList are a performance killer but they make my life easier right now
   private[this] val LogEnabled = false
-
-  // TODO obviously that log() function is not the best way to do logging
-  // and those arr.toList are a performance killer but they are make my life easier for right now
 
   private[this] def sort[T : Numeric](arr: Array[T], low: Int, high: Int)(implicit c: scala.reflect.ClassTag[T]): Array[T] = {
     (high <= low) match {

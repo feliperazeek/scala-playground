@@ -2,6 +2,7 @@
 *.log
 log
 logs
+project
 
 # sbt specific
 .cache/
